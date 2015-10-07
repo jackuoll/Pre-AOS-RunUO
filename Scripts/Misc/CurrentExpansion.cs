@@ -5,7 +5,8 @@ namespace Server
 {
 	public class CurrentExpansion
 	{
-		private static readonly Expansion Expansion = Expansion.None;
+		private static readonly Expansion Expansion = Expansion.T2A;
+		public static readonly bool IncludeTrammel = false;
 
 		public static void Configure()
 		{

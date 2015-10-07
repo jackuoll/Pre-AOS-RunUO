@@ -14,9 +14,8 @@ namespace Server.Misc
 			 * 3) Map 0xFF is reserved for core use.
 			 * 4) Changing or removing any predefined maps may cause server instability.
 			 */
-
-			RegisterMap( 0, 0, 0, 7168, 4096, 4, "Felucca",		MapRules.FeluccaRules );
-			RegisterMap( 1, 1, 1, 7168, 4096, 0, "Trammel",		MapRules.TrammelRules );
+			RegisterMap( 0, 0, 0, 7168, 4096, CurrentExpansion.IncludeTrammel ? 4 : 0, "Felucca",		MapRules.FeluccaRules );
+			RegisterMap( 1, 1, 0, 7168, 4096, 0, "Trammel",		MapRules.TrammelRules );
 			RegisterMap( 2, 2, 2, 2304, 1600, 1, "Ilshenar",	MapRules.TrammelRules );
 			RegisterMap( 3, 3, 3, 2560, 2048, 1, "Malas",		MapRules.TrammelRules );
 			RegisterMap( 4, 4, 4, 1448, 1448, 1, "Tokuno",		MapRules.TrammelRules );
@@ -38,9 +37,9 @@ namespace Server.Misc
 			 *  - <rules> : Rules and restrictions associated with the map. See documentation for details
 			*/
 
-			TileMatrixPatch.Enabled = false; // OSI Client Patch 6.0.0.0
+			TileMatrixPatch.Enabled = true; // OSI Client Patch 6.0.0.0
 
-			MultiComponentList.PostHSFormat = true; // OSI Client Patch 7.0.9.0
+			MultiComponentList.PostHSFormat = false; // OSI Client Patch 7.0.9.0
 		}
 
 		public static void RegisterMap( int mapIndex, int mapID, int fileIndex, int width, int height, int season, string name, MapRules rules )

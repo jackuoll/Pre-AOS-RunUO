@@ -286,16 +286,8 @@ namespace Server.Items
 					new PMEntry( new Point3D(  270,  628, 15 ), 1063414 )  // Homare-Jima
 				} );
 
-		public static readonly PMList[] UORLists		= new PMList[] { Trammel, Felucca };
-		public static readonly PMList[] UORListsYoung	= new PMList[] { Trammel };
-		public static readonly PMList[] LBRLists		= new PMList[] { Trammel, Felucca, Ilshenar };
-		public static readonly PMList[] LBRListsYoung	= new PMList[] { Trammel, Ilshenar };
-		public static readonly PMList[] AOSLists		= new PMList[] { Trammel, Felucca, Ilshenar, Malas };
-		public static readonly PMList[] AOSListsYoung	= new PMList[] { Trammel, Ilshenar, Malas };
-		public static readonly PMList[] SELists			= new PMList[] { Trammel, Felucca, Ilshenar, Malas, Tokuno };
-		public static readonly PMList[] SEListsYoung	= new PMList[] { Trammel, Ilshenar, Malas, Tokuno };
-		public static readonly PMList[] RedLists		= new PMList[] { Felucca };
-		public static readonly PMList[] SigilLists		= new PMList[] { Felucca };
+		public static readonly PMList[] FelOnly		= new PMList[] { Felucca };
+		public static readonly PMList[] TramFel		= new PMList[] { Trammel, Felucca };
 	}
 
 	public class MoongateGump : Gump
@@ -311,34 +303,13 @@ namespace Server.Items
 
 			PMList[] checkLists;
 
-			if ( mobile.Player )
+			if ( !CurrentExpansion.IncludeTrammel || Factions.Sigil.ExistsOn( mobile ) || mobile.Kills >= 5 )
 			{
-				if ( Factions.Sigil.ExistsOn( mobile ) )
-				{
-					checkLists = PMList.SigilLists;
-				}
-				else if ( mobile.Kills >= 5 )
-				{
-					checkLists = PMList.RedLists;
-				}
-				else
-				{
-					ClientFlags flags = mobile.NetState == null ? ClientFlags.None : mobile.NetState.Flags;
-					bool young = mobile is PlayerMobile ? ((PlayerMobile)mobile).Young : false;
-
-					if ( Core.SE && (flags & ClientFlags.Tokuno) != 0 )
-						checkLists = young ? PMList.SEListsYoung : PMList.SELists;
-					else if ( Core.AOS && (flags & ClientFlags.Malas) != 0 )
-						checkLists = young ? PMList.AOSListsYoung : PMList.AOSLists;
-					else if ( (flags & ClientFlags.Ilshenar) != 0 )
-						checkLists = young ? PMList.LBRListsYoung : PMList.LBRLists;
-					else
-						checkLists = young ? PMList.UORListsYoung : PMList.UORLists;
-				}
+				checkLists = PMList.FelOnly;
 			}
 			else
 			{
-				checkLists = PMList.SELists;
+				checkLists = PMList.TramFel;
 			}
 
 			m_Lists = new PMList[checkLists.Length];

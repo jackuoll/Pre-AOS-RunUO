@@ -8,7 +8,7 @@ namespace Server
 	public class PathFollower
 	{
 		// Should we use pathfinding? 'false' for not
-		private static bool Enabled = true;
+		private static bool Enabled = Core.Expansion == Expansion.UOR;
 
 		private Mobile m_From;
 		private IPoint3D m_Goal;

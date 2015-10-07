@@ -5,30 +5,18 @@ namespace Server
 {
 	public class CurrentExpansion
 	{
-		private static readonly Expansion Expansion = Expansion.HS;
+		private static readonly Expansion Expansion = Expansion.None;
 
 		public static void Configure()
 		{
 			Core.Expansion = Expansion;
 
-			bool Enabled = Core.AOS;
-
-			Mobile.InsuranceEnabled = Enabled;
-			ObjectPropertyList.Enabled = Enabled;
-			Mobile.VisibleDamageType = Enabled ? VisibleDamageType.Related : VisibleDamageType.None;
-			Mobile.GuildClickMessage = !Enabled;
-			Mobile.AsciiClickMessage = !Enabled;
-
-			if ( Enabled )
-			{
-				AOS.DisableStatInfluences();
-
-				if ( ObjectPropertyList.Enabled )
-					PacketHandlers.SingleClickProps = true; // single click for everything is overriden to check object property list
-
-				Mobile.ActionDelay = 1000;
-				Mobile.AOSStatusHandler = new AOSStatusHandler( AOS.GetStatus );
-			}
+			Mobile.InsuranceEnabled = false;
+			ObjectPropertyList.Enabled = true;
+			Mobile.VisibleDamageType = Expansion == Expansion.UOR ? VisibleDamageType.Related : VisibleDamageType.None;
+			Mobile.GuildClickMessage = true;
+			Mobile.AsciiClickMessage = true;
+			Mobile.ActionDelay = 500;
 		}
 	}
 }

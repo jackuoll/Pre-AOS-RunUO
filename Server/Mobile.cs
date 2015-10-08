@@ -5059,6 +5059,47 @@ namespace Server
 		{
 			return null;
 		}
+		
+		public void RegisterUnhealthy( Mobile from )
+		{
+			DamageEntry de = FindDamageEntryFor( from );
+
+			if( de == null )
+				de = new DamageEntry( from );
+
+			de.LastDamage = DateTime.UtcNow;
+
+			m_DamageEntries.Remove( de );
+			m_DamageEntries.Add( de );
+			
+			Mobile master = from.GetDamageMaster( this );
+
+			if( master != null )
+			{
+				List<DamageEntry> list = de.Responsible;
+
+				if( list == null )
+					de.Responsible = list = new List<DamageEntry>();
+
+				DamageEntry resp = null;
+
+				for( int i = 0; i < list.Count; ++i )
+				{
+					DamageEntry check = list[i];
+
+					if( check.Damager == master )
+					{
+						resp = check;
+						break;
+					}
+				}
+
+				if( resp == null )
+					list.Add( resp = new DamageEntry( master ) );
+
+				resp.LastDamage = DateTime.UtcNow;
+			}			
+		}
 
 		public virtual DamageEntry RegisterDamage( int amount, Mobile from )
 		{

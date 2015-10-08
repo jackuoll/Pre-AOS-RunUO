@@ -1200,7 +1200,7 @@ namespace Server.Mobiles
 			ApplyPoisonResult result = base.ApplyPoison( from, poison );
 
 			if ( from != null && result == ApplyPoisonResult.Poisoned && PoisonTimer is PoisonImpl.PoisonTimer )
-				(PoisonTimer as PoisonImpl.PoisonTimer).From = from;
+				RegisterUnhealthy( from );
 
 			return result;
 		}

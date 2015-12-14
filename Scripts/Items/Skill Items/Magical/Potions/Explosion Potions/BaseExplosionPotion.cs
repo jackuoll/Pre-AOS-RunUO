@@ -224,6 +224,11 @@ namespace Server.Items
 				Timer.DelayCall( TimeSpan.FromSeconds( 1.0 ), new TimerStateCallback( m_Potion.Reposition_OnTick ), new object[]{ from, p, map } );
 			}
 		}
+		
+		public bool TimerIsRunning()
+		{
+			return m_Timer != null && m_Timer.Running;
+		}
 
 		public void Explode( Mobile from, bool direct, Point3D loc, Map map )
 		{

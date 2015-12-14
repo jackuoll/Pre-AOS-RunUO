@@ -222,6 +222,11 @@ namespace Server.Items
 				BasePotion pot = (BasePotion)item;
                 int toHold = Math.Min( 100 - m_Held, pot.Amount );
 
+				if( item is BaseExplosionPotion && ((BaseExplosionPotion)item).TimerIsRunning() )
+				{
+					from.SendMessage( "That is about to explode!" );
+					return false;
+				}
 				if ( toHold <= 0 )
 				{
 					from.SendLocalizedMessage( 502233 ); // The keg will not hold any more!

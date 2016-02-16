@@ -8,111 +8,113 @@ using Server.Items;
 
 namespace Server.Gumps
 {
-	public class ReportMurdererBountyGump : Gump
-	{
-		private int m_Idx;
-		private List<Mobile> m_Killers;
-		private Mobile m_Victum;
+    public class ReportMurdererBountyGump : Gump
+    {
+        private int m_Idx;
+        private List<Mobile> m_Killers;
+        private Mobile m_Victum;
 
         [CallPriority(1)]
-		public static void Initialize()
-		{
+        public static void Initialize()
+        {
             EventSink.PlayerDeath -= ReportMurdererGump.EventSink_PlayerDeath;
+            EventSink.PlayerDeath += EventSink_PlayerDeath;
         }
 
-		public static void EventSink_PlayerDeath( PlayerDeathEventArgs e )
-		{
-			Mobile m = e.Mobile;
+        public static void EventSink_PlayerDeath(PlayerDeathEventArgs e)
+        {
+            Mobile m = e.Mobile;
 
-			List<Mobile> killers = new List<Mobile>();
-			List<Mobile> toGive  = new List<Mobile>();
+            List<Mobile> killers = new List<Mobile>();
+            List<Mobile> toGive = new List<Mobile>();
 
-			foreach ( AggressorInfo ai in m.Aggressors )
-			{
-				if ( ai.Attacker.Player && ai.CanReportMurder && !ai.Reported )
-				{
+            foreach (AggressorInfo ai in m.Aggressors)
+            {
+                if (ai.Attacker.Player && ai.CanReportMurder && !ai.Reported)
+                {
                     // Note: The default reportmurderer script only allows reporting the same player once every 10 minutes in the Core.SE expansion.
                     // This was also the case in the T2A era, so I'm not sure why it was set to a minimum expansion of Core.SE
-					if (!((PlayerMobile)m).RecentlyReported.Contains(ai.Attacker))
-					{
-						killers.Add(ai.Attacker);
-						ai.Reported = true;
-						ai.CanReportMurder = false;
-					}
-				}
+                    if (!((PlayerMobile) m).RecentlyReported.Contains(ai.Attacker))
+                    {
+                        killers.Add(ai.Attacker);
+                        ai.Reported = true;
+                        ai.CanReportMurder = false;
+                    }
+                }
 
-				if ( ai.Attacker.Player && (DateTime.UtcNow - ai.LastCombatTime) < TimeSpan.FromSeconds( 30.0 ) && !toGive.Contains( ai.Attacker ) )
-					toGive.Add( ai.Attacker );
-			}
+                if (ai.Attacker.Player && (DateTime.UtcNow - ai.LastCombatTime) < TimeSpan.FromSeconds(30.0) &&
+                    !toGive.Contains(ai.Attacker))
+                    toGive.Add(ai.Attacker);
+            }
 
-			foreach ( AggressorInfo ai in m.Aggressed )
-			{
-				if ( ai.Defender.Player && (DateTime.UtcNow - ai.LastCombatTime) < TimeSpan.FromSeconds( 30.0 ) && !toGive.Contains( ai.Defender ) )
-					toGive.Add( ai.Defender );
-			}
-
-			foreach ( Mobile g in toGive )
-			{
-				int n = Notoriety.Compute( g, m );
-
-				int theirKarma = m.Karma, ourKarma = g.Karma;
-				bool innocent = ( n == Notoriety.Innocent );
-				bool criminal = ( n == Notoriety.Criminal || n == Notoriety.Murderer );
-
-				int fameAward = m.Fame / 200;
-				int karmaAward = 0;
-
-				if ( innocent )
-					karmaAward = ( ourKarma > -2500 ? -850 : -110 - (m.Karma / 100) );
-				else if ( criminal )
-					karmaAward = 50;
-
-				Titles.AwardFame( g, fameAward, false );
-				Titles.AwardKarma( g, karmaAward, true );
-			}
-
-			if ( m is PlayerMobile && ((PlayerMobile)m).NpcGuild == NpcGuild.ThievesGuild )
-				return;
-
-			if ( killers.Count > 0 )
+            foreach (AggressorInfo ai in m.Aggressed)
             {
-                var g = m.FindGump(typeof(ReportMurdererBountyGump)) as ReportMurdererBountyGump;
+                if (ai.Defender.Player && (DateTime.UtcNow - ai.LastCombatTime) < TimeSpan.FromSeconds(30.0) &&
+                    !toGive.Contains(ai.Defender))
+                    toGive.Add(ai.Defender);
+            }
+
+            foreach (Mobile g in toGive)
+            {
+                int n = Notoriety.Compute(g, m);
+
+                int theirKarma = m.Karma, ourKarma = g.Karma;
+                bool innocent = (n == Notoriety.Innocent);
+                bool criminal = (n == Notoriety.Criminal || n == Notoriety.Murderer);
+
+                int fameAward = m.Fame/200;
+                int karmaAward = 0;
+
+                if (innocent)
+                    karmaAward = (ourKarma > -2500 ? -850 : -110 - (m.Karma/100));
+                else if (criminal)
+                    karmaAward = 50;
+
+                Titles.AwardFame(g, fameAward, false);
+                Titles.AwardKarma(g, karmaAward, true);
+            }
+
+            if (m is PlayerMobile && ((PlayerMobile) m).NpcGuild == NpcGuild.ThievesGuild)
+                return;
+
+            if (killers.Count > 0)
+            {
+                var g = m.FindGump(typeof (ReportMurdererBountyGump)) as ReportMurdererBountyGump;
                 if (g != null)
                     g.TryAddKillers(killers);
                 else
                     new GumpTimer(m, killers).Start();
             }
-				
-		}
+        }
 
         private class GumpTimer : Timer
-		{
-			private Mobile m_Victim;
-			private List<Mobile> m_Killers;
+        {
+            private Mobile m_Victim;
+            private List<Mobile> m_Killers;
 
-			public GumpTimer( Mobile victim, List<Mobile> killers ) : base( TimeSpan.FromSeconds( 4.0 ) )
-			{
-				m_Victim = victim;
-				m_Killers = killers;
-			}
+            public GumpTimer(Mobile victim, List<Mobile> killers) : base(TimeSpan.FromSeconds(4.0))
+            {
+                m_Victim = victim;
+                m_Killers = killers;
+            }
 
-			protected override void OnTick()
-			{
-				m_Victim.SendGump( new ReportMurdererBountyGump( m_Victim, m_Killers ) );
-			}
-		}
+            protected override void OnTick()
+            {
+                m_Victim.SendGump(new ReportMurdererBountyGump(m_Victim, m_Killers));
+            }
+        }
 
-		public ReportMurdererBountyGump( Mobile victum, List<Mobile> killers ) : this( victum, killers, 0 )
-		{
-		}
+        public ReportMurdererBountyGump(Mobile victum, List<Mobile> killers) : this(victum, killers, 0)
+        {
+        }
 
-		private ReportMurdererBountyGump( Mobile victum, List<Mobile> killers, int idx ) : base( 0, 0 )
-		{
-			m_Killers = killers;
-			m_Victum = victum;
-			m_Idx = idx;
-			BuildGump();
-		}
+        private ReportMurdererBountyGump(Mobile victum, List<Mobile> killers, int idx) : base(0, 0)
+        {
+            m_Killers = killers;
+            m_Victum = victum;
+            m_Idx = idx;
+            BuildGump();
+        }
 
         private void BuildGump()
         {
@@ -124,7 +126,8 @@ namespace Server.Gumps
 
             AddPage(0);
 
-            AddHtml(325, 255, 300, 60, "<BIG>Would you like to report " + m_Killers[m_Idx].Name + " as a murderer?</BIG>", false, false);
+            AddHtml(325, 255, 300, 60,
+                "<BIG>Would you like to report " + m_Killers[m_Idx].Name + " as a murderer?</BIG>", false, false);
 
             int bountymax = GetBountyMax(m_Victum);
 
@@ -141,7 +144,7 @@ namespace Server.Gumps
 
         private int GetBountyMax(Mobile from)
         {
-            Item[] gold = from.BankBox.FindItemsByType(typeof(Gold), true);
+            Item[] gold = from.BankBox.FindItemsByType(typeof (Gold), true);
             int total = 0;
             for (int i = 0; i < gold.Length; i++)
                 total += gold[i].Amount;
@@ -179,41 +182,45 @@ namespace Server.Gumps
 
         private void TryAddKillers(List<Mobile> killers)
         {
-            m_Killers.AddRange(killers.Where(killer => !m_Killers.Contains(killer) && !((PlayerMobile)m_Victum).RecentlyReported.Contains(killer)));
+            m_Killers.AddRange(
+                killers.Where(
+                    killer =>
+                        !m_Killers.Contains(killer) && !((PlayerMobile) m_Victum).RecentlyReported.Contains(killer)));
         }
 
-        public static void ReportedListExpiry_Callback( object state )
-		{
-			object[] states = (object[])state;
+        public static void ReportedListExpiry_Callback(object state)
+        {
+            object[] states = (object[]) state;
 
-			PlayerMobile from = (PlayerMobile)states[0];
-			Mobile killer = (Mobile)states[1];
+            PlayerMobile from = (PlayerMobile) states[0];
+            Mobile killer = (Mobile) states[1];
 
-			if (from.RecentlyReported.Contains(killer))
-			{
-				from.RecentlyReported.Remove(killer);
-			}
-		}
+            if (from.RecentlyReported.Contains(killer))
+            {
+                from.RecentlyReported.Remove(killer);
+            }
+        }
 
-		public override void OnResponse( NetState state, RelayInfo info )
-		{
+        public override void OnResponse(NetState state, RelayInfo info)
+        {
             Mobile from = state.Mobile;
 
-			switch ( info.ButtonID )
-			{
+            switch (info.ButtonID)
+            {
                 case 1:
                 {
                     Mobile killer = m_Killers[m_Idx];
-					if ( killer != null && !killer.Deleted )
-					{
+                    if (killer != null && !killer.Deleted)
+                    {
                         killer.Kills++;
-						killer.ShortTermMurders++;
+                        killer.ShortTermMurders++;
 
-						
-						((PlayerMobile)from).RecentlyReported.Add(killer);
-						Timer.DelayCall(TimeSpan.FromMinutes(10), new TimerStateCallback(ReportedListExpiry_Callback), new object[] { from, killer });
 
-						PlayerMobile pk = (PlayerMobile)killer;
+                        ((PlayerMobile) from).RecentlyReported.Add(killer);
+                        Timer.DelayCall(TimeSpan.FromMinutes(10), new TimerStateCallback(ReportedListExpiry_Callback),
+                            new object[] {from, killer});
+
+                        PlayerMobile pk = (PlayerMobile) killer;
 
                         int bounty = 0;
                         if (info.GetTextEntry(1) != null)
@@ -228,7 +235,8 @@ namespace Server.Gumps
                                     BountyInformation bi = BountyInformation.AddBounty(pk, bounty);
                                     //BountyMessage.UpdateBounty(bi);
 
-                                    pk.SendAsciiMessage("{0} has placed a bounty of {1} {2} on your head!", from.Name, bounty, (bounty == 1) ? "gold piece" : "gold pieces");
+                                    pk.SendAsciiMessage("{0} has placed a bounty of {1} {2} on your head!", from.Name,
+                                        bounty, (bounty == 1) ? "gold piece" : "gold pieces");
 
                                     from.SendAsciiMessage("You place a bounty of {0}gp on {1}'s head.", bounty, pk.Name);
                                 }
@@ -236,28 +244,29 @@ namespace Server.Gumps
                         }
 
                         pk.ResetKillTime();
-						pk.SendLocalizedMessage(1049067);//You have been reported for murder!
+                        pk.SendLocalizedMessage(1049067); //You have been reported for murder!
 
-						if (pk.Kills == 5)
-						{
-							pk.SendLocalizedMessage(502134);//You are now known as a murderer!
-						}
-						else if (SkillHandlers.Stealing.SuspendOnMurder && pk.Kills == 1 && pk.NpcGuild == NpcGuild.ThievesGuild)
-						{
-							pk.SendLocalizedMessage(501562); // You have been suspended by the Thieves Guild.
-						}
-					}
-					break;
-				}
-				case 2:
-				{
-					break;
-				}
-			}
+                        if (pk.Kills == 5)
+                        {
+                            pk.SendLocalizedMessage(502134); //You are now known as a murderer!
+                        }
+                        else if (SkillHandlers.Stealing.SuspendOnMurder && pk.Kills == 1 &&
+                                 pk.NpcGuild == NpcGuild.ThievesGuild)
+                        {
+                            pk.SendLocalizedMessage(501562); // You have been suspended by the Thieves Guild.
+                        }
+                    }
+                    break;
+                }
+                case 2:
+                {
+                    break;
+                }
+            }
 
-			m_Idx++;
-			if ( m_Idx < m_Killers.Count )
-				from.SendGump( new ReportMurdererBountyGump( from, m_Killers, m_Idx ) );
-		}
-	}
+            m_Idx++;
+            if (m_Idx < m_Killers.Count)
+                from.SendGump(new ReportMurdererBountyGump(from, m_Killers, m_Idx));
+        }
+    }
 }

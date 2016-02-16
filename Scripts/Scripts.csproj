@@ -822,6 +822,7 @@
     <Compile Include="Gumps\Properties\SetPoint3DGump.cs" />
     <Compile Include="Gumps\Properties\SetTimeSpanGump.cs" />
     <Compile Include="Gumps\ReclaimVendorGump.cs" />
+    <Compile Include="Gumps\ReportMurdererBountyGump.cs" />
     <Compile Include="Gumps\ReportMurderer.cs" />
     <Compile Include="Gumps\ResurrectGump.cs" />
     <Compile Include="Gumps\RewardGump.cs" />
@@ -1466,6 +1467,7 @@
     <Compile Include="Items\Misc\Blood.cs" />
     <Compile Include="Items\Misc\Bola.cs" />
     <Compile Include="Items\Misc\BolaBall.cs" />
+    <Compile Include="Items\Misc\BountyBoard.cs" />
     <Compile Include="Items\Misc\BulletinBoards.cs" />
     <Compile Include="Items\Misc\ClockworkAssembly.cs" />
     <Compile Include="Items\Misc\CommunicationCrystals.cs" />
@@ -2372,6 +2374,7 @@
     <Compile Include="Misc\AttackMessage.cs" />
     <Compile Include="Misc\AutoRestart.cs" />
     <Compile Include="Misc\AutoSave.cs" />
+    <Compile Include="Misc\BountyInformation.cs" />
     <Compile Include="Misc\Broadcasts.cs" />
     <Compile Include="Misc\BuffIcons.cs" />
     <Compile Include="Misc\CharacterCreation.cs" />

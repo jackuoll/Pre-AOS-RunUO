@@ -171,7 +171,7 @@ namespace Server.Gumps
             return totalremoved;
         }
 
-        private void TryAddKillers(List<Mobile> killers)
+        private void TryAddKillers(IEnumerable<Mobile> killers)
         {
             _killers.AddRange(
                 killers.Where(

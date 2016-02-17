@@ -1,21 +1,21 @@
 ﻿using Server.Misc;
 using Server.Network;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Server.Network.Misc;
+using Server.Mobiles;
 
 namespace Server.Items
 {
     public class BountyBoard : BaseBulletinBoard
     {
-        private static readonly List<BountyBoard> _allBoards = new List<BountyBoard>();
+        private static readonly List<BountyBoard> AllBoards = new List<BountyBoard>();
 
         [Constructable]
         public BountyBoard() : base(0x1E5E)
         {
             BoardName = "bounty board";
-            _allBoards.Add(this);
+            AllBoards.Add(this);
             GetInitialBounties();
         }
 
@@ -31,7 +31,13 @@ namespace Server.Items
 
         public BountyBoard(Serial serial) : base(serial)
         {
-            _allBoards.Add(this);
+            AllBoards.Add(this);
+        }
+
+        public override void OnSingleClick(Mobile from)
+        {
+            LabelTo(from,
+                string.Format("a bounty board with {0} posted bount{1}", Items.Count, Items.Count == 1 ? "y" : "ies"));
         }
 
         public override void OnDoubleClick(Mobile from)
@@ -40,7 +46,7 @@ namespace Server.Items
             {
                 Cleanup();
                 
-                NetState state = from.NetState;
+                var state = from.NetState;
 
                 state.Send(new BBDisplayBoard(this));
                 if (state.ContainerGridLines)
@@ -81,15 +87,15 @@ namespace Server.Items
             int version = reader.ReadInt();
         }
 
-        internal static void GloballyCreateMessage(Mobile m)
+        private static void GloballyCreateMessage(Mobile m)
         {
-            foreach(var bb in _allBoards)
+            foreach(var bb in AllBoards)
                 bb.AddBountyToBoard(m);
         }
 
-        internal static void GloballyDeleteMessage(Mobile m)
+        private static void GloballyDeleteMessage(Mobile m)
         {
-            foreach (var bb in _allBoards)
+            foreach (var bb in AllBoards)
             {
                 var curMsg = bb.Items.FirstOrDefault(x => x is BountyMessage && ((BountyMessage)x).BountyPlayer == m);
                 if (curMsg != null)
@@ -101,13 +107,18 @@ namespace Server.Items
         {
             AddItem(new BountyMessage(m));
         }
+
+        public static void UpdateBounty(PlayerMobile pk)
+        {
+            // Unfortunately BulletinMessage does not allow updating of the subject. So we have to delete and remake the bounty message.
+            GloballyDeleteMessage(pk);
+            GloballyCreateMessage(pk);
+        }
     }
 
     public class BountyMessage : BulletinMessage
     {
-        private Mobile _bountyPlayer;
-
-        public Mobile BountyPlayer { get { return _bountyPlayer; } }
+        public Mobile BountyPlayer;
         public int BountyAmount;
         
         public BountyMessage(Mobile m) : this(m, BountyInformation.GetBounty(m))
@@ -116,7 +127,7 @@ namespace Server.Items
 
         public BountyMessage(Mobile bountied, int bounty) : base(bountied, null, bounty + " gold pieces", CreateDescription(bountied))
         {
-            _bountyPlayer = bountied;
+            BountyPlayer = bountied;
             BountyAmount = bounty;
         }
 
@@ -158,7 +169,7 @@ namespace Server.Items
                 case 6: subtext2 = "Lord British's bounty"; break;
             }
 
-            var text = String.Format("The foul scum known as {0} {1} For {2} is responsible for {3} murders. {4} of {5} gold pieces for {6} head!", bountyPlayer.RawName, subtext1, (bountyPlayer.Body.IsFemale ? "she" : "he"), bountyPlayer.Kills, subtext2, BountyInformation.GetBounty(bountyPlayer).ToString(), (bountyPlayer.Body.IsFemale ? "her" : "his"));
+            var text = string.Format("The foul scum known as {0} {1} For {2} is responsible for {3} murders. {4} of {5} gold pieces for {6} head!", bountyPlayer.RawName, subtext1, (bountyPlayer.Body.IsFemale ? "she" : "he"), bountyPlayer.Kills, subtext2, BountyInformation.GetBounty(bountyPlayer).ToString(), (bountyPlayer.Body.IsFemale ? "her" : "his"));
 
             var current = 0;
             var linesList = new List<string>();
@@ -200,7 +211,7 @@ namespace Server.Items
 
             writer.Write((int)0); // version
 
-            writer.Write(_bountyPlayer);
+            writer.Write(BountyPlayer);
             writer.Write(BountyAmount);
         }
 
@@ -210,19 +221,11 @@ namespace Server.Items
 
             int version = reader.ReadInt();
 
-            _bountyPlayer = reader.ReadMobile();
+            BountyPlayer = reader.ReadMobile();
             BountyAmount = reader.ReadInt();
 
-            if (_bountyPlayer == null)
+            if (BountyPlayer == null)
                 Delete();
-        }
-
-        public static void UpdateBounty(Mobile m)
-        {
-            // Unfortunately BulletinMessage does not allow updating of the subject. So we have to delete and remake the bounty message.
-            // Move these to BountyBoard.
-            BountyBoard.GloballyDeleteMessage(m);
-            BountyBoard.GloballyCreateMessage(m);
         }
     }
 }

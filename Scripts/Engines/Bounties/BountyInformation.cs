@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using Server.Items;
 
 namespace Server.Misc
 {
@@ -48,7 +49,7 @@ namespace Server.Misc
             if (!Directory.Exists("Saves/Bounties"))
                 Directory.CreateDirectory("Saves/Bounties");
 
-            var fullPath = System.IO.Path.Combine("Saves/Bounties", "BountyInformation.xml");
+            var fullPath = Path.Combine("Saves/Bounties", "BountyInformation.xml");
 
             using (var op = new StreamWriter(fullPath))
             {
@@ -111,11 +112,31 @@ namespace Server.Misc
 
         public static List<BountyInformation> AllInfo = new List<BountyInformation>();
 
-        [CommandProperty(AccessLevel.Counselor)]
-        public PlayerMobile BountyPlayer { get; set; }
+        private PlayerMobile _bountyPlayer;
 
         [CommandProperty(AccessLevel.Counselor)]
-        public int Bounty { get; set; }
+        public PlayerMobile BountyPlayer { get { return _bountyPlayer; } }
+
+        private int _bounty;
+
+        [CommandProperty(AccessLevel.Counselor)]
+        public int Bounty
+        {
+            get { return _bounty; }
+            set
+            {
+                var changed = _bounty != value;
+                _bounty = value;
+
+                if (changed)
+                    UpdateBountyBoards();
+            }
+        }
+
+        private void UpdateBountyBoards()
+        {
+            BountyBoard.UpdateBounty(BountyPlayer);
+        }
 
         [CommandProperty(AccessLevel.Counselor)]
         public DateTime LastBounty { get; set; }
@@ -129,29 +150,33 @@ namespace Server.Misc
             }
         }
 
-        public static BountyInformation AddBounty(PlayerMobile pm, int bounty)
+        public static BountyInformation AddBounty(PlayerMobile pm, int bounty, bool updateBoards)
         {
             var bi = AllInfo.FirstOrDefault(info => info.BountyPlayer == pm);
 
             if (bi == null)
             {
-                bi = new BountyInformation {BountyPlayer = pm};
+                bi = new BountyInformation { _bountyPlayer = pm};
                 AllInfo.Add(bi);
             }
 
-            bi.AddBounty(bounty);
+            bi.AddBounty(bounty, updateBoards);
             return bi;
         }
 
-        internal static List<BountyInformation> GetValidBounties()
+        public static List<BountyInformation> GetValidBounties()
         {
             AllInfo = AllInfo.Where(x => !x.Expired).ToList();
             return AllInfo;
         }
 
-        private void AddBounty(int bounty)
+        private void AddBounty(int bounty, bool updateBoards)
         {
-            Bounty += bounty;
+            if (updateBoards)
+                _bounty = bounty;
+            else
+                Bounty += bounty;
+
             LastBounty = DateTime.UtcNow;
         }
 
@@ -165,7 +190,7 @@ namespace Server.Misc
             return AllInfo.FirstOrDefault(info => info.BountyPlayer == bountyPlayer);
         }
 
-        internal static int GetBounty(Mobile bountyPlayer)
+        public static int GetBounty(Mobile bountyPlayer)
         {
             var bi = GetBountyInformation(bountyPlayer);
             return bi == null ? 0 : bi.Bounty;
@@ -183,7 +208,7 @@ namespace Server.Misc
                 if (mob == null || bounty == -1 || lastBounty + TimeSpan.FromDays(14.0) < DateTime.UtcNow)
                     return;
 
-                var bi = AddBounty(mob, bounty);
+                var bi = AddBounty(mob, bounty, true);
                 bi.LastBounty = lastBounty;
             }
             catch

@@ -222,13 +222,13 @@ namespace Server.Gumps
                                 if (bounty > 0)
                                 {
                                     bounty = RemoveGoldFromBank(from, bounty);
-                                    var bi = BountyInformation.AddBounty(pk, bounty);
-                                    BountyMessage.UpdateBounty(pk);
+                                    BountyInformation.AddBounty(pk, bounty, true);
 
-                                    pk.SendAsciiMessage("{0} has placed a bounty of {1} {2} on your head!", from.Name,
+                                    pk.SendMessage("{0} has placed a bounty of {1} {2} on your head!", from.Name,
                                         bounty, bounty == 1 ? "gold piece" : "gold pieces");
+                                    pk.Say(500546); // I am now bounty hunted!
 
-                                    from.SendAsciiMessage("You place a bounty of {0}gp on {1}'s head.", bounty, pk.Name);
+                                    from.SendMessage("You place a bounty of {0}gp on {1}'s head.", bounty, pk.Name);
                                 }
                             }
                         }

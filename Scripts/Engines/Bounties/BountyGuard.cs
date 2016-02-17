@@ -3,7 +3,7 @@ using Server.Misc;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Mobiles.Guards
+namespace Server.Mobiles
 {
     public class BountyGuard : WarriorGuard
     {
@@ -68,17 +68,15 @@ namespace Server.Mobiles.Guards
             bi.SubtractBounty(headBounty);
 
             if (headBounty >= 15000)
-                Say(true,
-                    string.Format(
+                Say(string.Format(
                         "Thou hast brought the infamous {0} to justice!  Thy reward of {1}gp hath been deposited in thy bank account.",
                         head.Player.Name, headBounty));
             else if (headBounty > 100)
-                Say(true,
-                    string.Format(
+                Say(string.Format(
                         "Tis a minor criminal, thank thee. Thy reward of {0}gp hath been deposited in thy bank account.",
                         headBounty));
             else
-                Say(true, string.Format("Thou hast wasted thy time for {0}gp.", headBounty));
+                Say(string.Format("Thou hast wasted thy time for {0}gp.", headBounty));
         }
 
         public BountyGuard(Serial serial) : base(serial)

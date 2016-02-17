@@ -1153,6 +1153,7 @@
     <Compile Include="Items\Armor\Studded\StuddedMempo.cs" />
     <Compile Include="Items\Armor\Studded\StuddedSuneate.cs" />
     <Compile Include="Items\Body Parts\BonePile.cs" />
+    <Compile Include="Items\Body Parts\BountiedHead.cs" />
     <Compile Include="Items\Body Parts\Head.cs" />
     <Compile Include="Items\Body Parts\LeftArm.cs" />
     <Compile Include="Items\Body Parts\LeftLeg.cs" />
@@ -2543,6 +2544,7 @@
     <Compile Include="Mobiles\Familiars\VampireBat.cs" />
     <Compile Include="Mobiles\Guards\ArcherGuard.cs" />
     <Compile Include="Mobiles\Guards\BaseGuard.cs" />
+    <Compile Include="Mobiles\Guards\BountyGuard.cs" />
     <Compile Include="Mobiles\Guards\WarriorGuard.cs" />
     <Compile Include="Mobiles\Healers\BaseHealer.cs" />
     <Compile Include="Mobiles\Healers\EvilHealer.cs" />

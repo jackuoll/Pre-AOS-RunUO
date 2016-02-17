@@ -124,7 +124,7 @@ namespace Server.Misc
         {
             get
             {
-                return BountyPlayer.Deleted || BountyPlayer.Kills < 5 ||
+                return BountyPlayer.Deleted || BountyPlayer.Kills < 5 || Bounty <= 0 ||
                        LastBounty + TimeSpan.FromDays(14.0) < DateTime.UtcNow;
             }
         }
@@ -155,9 +155,20 @@ namespace Server.Misc
             LastBounty = DateTime.UtcNow;
         }
 
+        public void SubtractBounty(int headBounty)
+        {
+            Bounty -= headBounty;
+        }
+
+        public static BountyInformation GetBountyInformation(Mobile bountyPlayer)
+        {
+            return AllInfo.FirstOrDefault(info => info.BountyPlayer == bountyPlayer);
+        }
+
         internal static int GetBounty(Mobile bountyPlayer)
         {
-            return AllInfo.Where(info => info.BountyPlayer == bountyPlayer).Select(info => info.Bounty).First();
+            var bi = GetBountyInformation(bountyPlayer);
+            return bi == null ? 0 : bi.Bounty;
         }
 
         private static void LoadBounty(XmlElement node, ref bool noFail)

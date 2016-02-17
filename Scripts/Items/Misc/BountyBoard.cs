@@ -1,45 +1,79 @@
 ﻿using Server.Misc;
 using Server.Mobiles;
+using Server.Network;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using Server.Network.Misc;
+
+/*
+    TODO: Head creation
+    TODO: IdleGuard which collects heads.
+    TODO: Serializing BountyInformation with XML
+*/
 
 namespace Server.Items
 {
     public class BountyBoard : BaseBulletinBoard
     {
-        private static BulletinBoard m_MasterBoard;
-        public static BulletinBoard MasterBoard
-        {
-            get
-            {
-                if (m_MasterBoard == null)
-                {
-                    m_MasterBoard = new BulletinBoard();
-                    m_MasterBoard.Name = "Master Bulletin Board";
-                }
-
-                return m_MasterBoard;
-            }
-        }
+        private static List<BountyBoard> _allBoards = new List<BountyBoard>();
 
         [Constructable]
         public BountyBoard() : base(0x1E5E)
         {
             BoardName = "bounty board";
+            _allBoards.Add(this);
+            GetInitialBounties();
+        }
+
+        private void GetInitialBounties()
+        {
+            var bountyPlayers = BountyInformation.GetValidBounties().Select(x=>x.BountyPlayer);
+
+            foreach (var bounty in bountyPlayers)
+            {
+                AddBountyToBoard(bounty);
+            }
         }
 
         public BountyBoard(Serial serial) : base(serial)
         {
+            _allBoards.Add(this);
+        }
+
+        public override void OnDoubleClick(Mobile from)
+        {
+            if (CheckRange(from))
+            {
+                Cleanup();
+                
+                NetState state = from.NetState;
+
+                state.Send(new BBDisplayBoard(this));
+                if (state.ContainerGridLines)
+                    state.Send(new BountyPackets.BBContent6017(from, this));
+                else
+                    state.Send(new BountyPackets.BBContent(from, this));
+            }
+            else
+            {
+                from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that.
+            }
         }
 
         public override void Cleanup()
         {
+            // Remove any outdated bounties, and remove any posts made by players. Cannot deny player postings without editing BaseBulletinBoard.
             var validBountyPlayers = BountyInformation.GetValidBounties().Select(x=>x.BountyPlayer);
-            MasterBoard.Items.Where(x => x is BountyMessage && !validBountyPlayers.Contains(((BountyMessage)x).BountyPlayer))
+            Items.Where(x => x is BountyMessage && !validBountyPlayers.Contains(((BountyMessage)x).BountyPlayer) || !(x is BountyMessage))
                 .ToList()
                 .ForEach( message => message.Delete() );
+        }
+
+        public override void Delete()
+        {
         }
 
         public override void Serialize(GenericWriter writer)
@@ -55,6 +89,27 @@ namespace Server.Items
 
             int version = reader.ReadInt();
         }
+
+        internal static void GloballyCreateMessage(Mobile m)
+        {
+            foreach(var bb in _allBoards)
+                bb.AddBountyToBoard(m);
+        }
+
+        internal static void GloballyDeleteMessage(Mobile m)
+        {
+            foreach (var bb in _allBoards)
+            {
+                var curMsg = bb.Items.FirstOrDefault(x => x is BountyMessage && ((BountyMessage)x).BountyPlayer == m);
+                if (curMsg != null)
+                    curMsg.Delete();
+            }
+        }
+
+        private void AddBountyToBoard(Mobile m)
+        {
+            AddItem(new BountyMessage(m));
+        }
     }
 
     public class BountyMessage : BulletinMessage
@@ -62,13 +117,16 @@ namespace Server.Items
         private Mobile _bountyPlayer;
 
         public Mobile BountyPlayer { get { return _bountyPlayer; } }
-
-        //public BulletinMessage(Mobile poster, BulletinMessage thread, string subject, string[] lines) : base( 0xEB0 )
-
-        public BountyMessage(Mobile m) : base(m, null, BountyInformation.GetBounty(m).ToString() + " gold pieces", CreateDescription(m))
+        public int BountyAmount;
+        
+        public BountyMessage(Mobile m) : this(m, BountyInformation.GetBounty(m))
         {
-            _bountyPlayer = m;
-            //BountyBoard.MasterBoard.AddItem(this);
+        }
+
+        public BountyMessage(Mobile bountied, int bounty) : base(bountied, null, bounty + " gold pieces", CreateDescription(bountied))
+        {
+            _bountyPlayer = bountied;
+            BountyAmount = bounty;
         }
 
         public static string[] CreateDescription(Mobile bountyPlayer)
@@ -109,28 +167,22 @@ namespace Server.Items
                 case 6: subtext2 = "Lord British's bounty"; break;
             }
 
-            string text = String.Format("The foul scum known as {0} {1} For {2} is responsible for {3} murders. {4} of {5} gold pieces for {6} head!", bountyPlayer.RawName, subtext1, (bountyPlayer.Body.IsFemale ? "she" : "he"), bountyPlayer.Kills, subtext2, BountyInformation.GetBounty(bountyPlayer).ToString(), (bountyPlayer.Body.IsFemale ? "her" : "his"));
+            var text = String.Format("The foul scum known as {0} {1} For {2} is responsible for {3} murders. {4} of {5} gold pieces for {6} head!", bountyPlayer.RawName, subtext1, (bountyPlayer.Body.IsFemale ? "she" : "he"), bountyPlayer.Kills, subtext2, BountyInformation.GetBounty(bountyPlayer).ToString(), (bountyPlayer.Body.IsFemale ? "her" : "his"));
 
-            // TODO: wtf is the below?
-
-            int current = 0;
-            int lineCount = 25;
-            List<String> linesList = new List<string>();
-
-            string[] lines = new string[lineCount];
-            char space = ' ';
+            var current = 0;
+            var linesList = new List<string>();
 
             // break up the text into single line length pieces
-            while (text != null && current < text.Length)
+            while (current < text.Length)
             {
                 // make each line 25 chars long
-                int length = text.Length - current;
+                var length = text.Length - current;
 
                 if (length > 25)
                 {
                     length = 25;
 
-                    while (text[current + length] != space)
+                    while (text[current + length] != ' ')
                         length--;
 
                     length++;
@@ -138,7 +190,7 @@ namespace Server.Items
                 }
                 else
                 {
-                    linesList.Add(String.Format("{0} ", text.Substring(current, length)));
+                    linesList.Add(string.Format("{0} ", text.Substring(current, length)));
                 }
 
                 current += length;
@@ -158,6 +210,7 @@ namespace Server.Items
             writer.Write((int)0); // version
 
             writer.Write(_bountyPlayer);
+            writer.Write(BountyAmount);
         }
 
         public override void Deserialize(GenericReader reader)
@@ -167,6 +220,8 @@ namespace Server.Items
             int version = reader.ReadInt();
 
             _bountyPlayer = reader.ReadMobile();
+            BountyAmount = reader.ReadInt();
+
             if (_bountyPlayer == null)
                 Delete();
         }
@@ -174,15 +229,9 @@ namespace Server.Items
         public static void UpdateBounty(Mobile m)
         {
             // Unfortunately BulletinMessage does not allow updating of the subject. So we have to delete and remake the bounty message.
-            DeleteBounty(m);
-            new BountyMessage(m);
-        }
-
-        public static void DeleteBounty(Mobile m)
-        {
-            var curMsg = BountyBoard.MasterBoard.Items.Where(x => x is BountyMessage && ((BountyMessage)x).BountyPlayer == m).FirstOrDefault();
-            if(curMsg!=null)
-                curMsg.Delete();
+            // Move these to BountyBoard.
+            BountyBoard.GloballyDeleteMessage(m);
+            BountyBoard.GloballyCreateMessage(m);
         }
     }
 }

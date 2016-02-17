@@ -1468,6 +1468,7 @@
     <Compile Include="Items\Misc\Bola.cs" />
     <Compile Include="Items\Misc\BolaBall.cs" />
     <Compile Include="Items\Misc\BountyBoard.cs" />
+    <Compile Include="Items\Misc\BountyPackets.cs" />
     <Compile Include="Items\Misc\BulletinBoards.cs" />
     <Compile Include="Items\Misc\ClockworkAssembly.cs" />
     <Compile Include="Items\Misc\CommunicationCrystals.cs" />

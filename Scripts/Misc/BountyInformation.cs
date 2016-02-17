@@ -21,7 +21,7 @@ namespace Server.Misc
 
         public static BountyInformation AddBounty(PlayerMobile pm, int bounty)
         {
-            var bi = AllInfo.Where(info => info.BountyPlayer == pm).FirstOrDefault();
+            var bi = AllInfo.FirstOrDefault(info => info.BountyPlayer == pm);
 
             if (bi == null)
             {
@@ -45,7 +45,7 @@ namespace Server.Misc
             LastBounty = DateTime.UtcNow;
         }
 
-        internal static object GetBounty(Mobile bountyPlayer)
+        internal static int GetBounty(Mobile bountyPlayer)
         {
             return AllInfo.Where(info => info.BountyPlayer == bountyPlayer).Select(info => info.Bounty).First();
         }

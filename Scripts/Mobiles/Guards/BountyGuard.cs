@@ -9,6 +9,11 @@ namespace Server.Mobiles.Guards
 {
     public class BountyGuard : WarriorGuard
     {
+        [Constructable]
+        public BountyGuard()
+        {
+        }
+
         private static readonly List<int> RejectedHeadSayings = new List<int>()
         {
             500661, // I shall place this on my mantle!

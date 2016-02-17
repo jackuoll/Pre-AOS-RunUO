@@ -6,7 +6,7 @@ using Server.Items;
 namespace Server.Network.Misc
 {
     // The entire reason this class exists is to sort the bounties. "Items" only has a get accessor.
-    class BountyPackets
+    public class BountyPackets
     {
         public sealed class BBContent : Packet
         {

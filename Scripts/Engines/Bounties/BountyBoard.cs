@@ -1,24 +1,15 @@
 ﻿using Server.Misc;
-using Server.Mobiles;
 using Server.Network;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using Server.Network.Misc;
-
-/*
-    TODO: Head creation
-    TODO: IdleGuard which collects heads.
-    TODO: Serializing BountyInformation with XML
-*/
 
 namespace Server.Items
 {
     public class BountyBoard : BaseBulletinBoard
     {
-        private static List<BountyBoard> _allBoards = new List<BountyBoard>();
+        private static readonly List<BountyBoard> _allBoards = new List<BountyBoard>();
 
         [Constructable]
         public BountyBoard() : base(0x1E5E)

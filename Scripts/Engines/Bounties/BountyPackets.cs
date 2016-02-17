@@ -5,6 +5,7 @@ using Server.Items;
 
 namespace Server.Network.Misc
 {
+    // The entire reason this class exists is to sort the bounties. "Items" only has a get accessor.
     class BountyPackets
     {
         public sealed class BBContent : Packet
@@ -12,7 +13,7 @@ namespace Server.Network.Misc
             public BBContent(Mobile beholder, Item beheld) : base(0x3C)
             {
                 List<Item> items = new List<Item>(beheld.Items);
-                items = items.Where(x => x is BountyMessage).OrderByDescending(x => ((BountyMessage) x).BountyAmount).ToList();
+                items = items.Where(x => x is BountyMessage).OrderByDescending(x => ((BountyMessage)x).BountyAmount).ToList();
                 int count = items.Count;
 
                 this.EnsureCapacity(5 + (count * 19));

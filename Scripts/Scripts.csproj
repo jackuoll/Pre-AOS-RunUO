@@ -132,6 +132,7 @@
     <Compile Include="Context Menus\EjectPlayer.cs" />
     <Compile Include="Context Menus\OpenBankEntry.cs" />
     <Compile Include="Context Menus\TeachEntry.cs" />
+    <Compile Include="Engines\Bounties\BountyPackets.cs" />
     <Compile Include="Engines\BulkOrders\Books\BOBFilter.cs" />
     <Compile Include="Engines\BulkOrders\Books\BOBFilterGump.cs" />
     <Compile Include="Engines\BulkOrders\Books\BOBGump.cs" />
@@ -822,7 +823,7 @@
     <Compile Include="Gumps\Properties\SetPoint3DGump.cs" />
     <Compile Include="Gumps\Properties\SetTimeSpanGump.cs" />
     <Compile Include="Gumps\ReclaimVendorGump.cs" />
-    <Compile Include="Gumps\ReportMurdererBountyGump.cs" />
+    <Compile Include="Engines\Bounties\ReportMurdererBountyGump.cs" />
     <Compile Include="Gumps\ReportMurderer.cs" />
     <Compile Include="Gumps\ResurrectGump.cs" />
     <Compile Include="Gumps\RewardGump.cs" />
@@ -1153,7 +1154,7 @@
     <Compile Include="Items\Armor\Studded\StuddedMempo.cs" />
     <Compile Include="Items\Armor\Studded\StuddedSuneate.cs" />
     <Compile Include="Items\Body Parts\BonePile.cs" />
-    <Compile Include="Items\Body Parts\BountiedHead.cs" />
+    <Compile Include="Engines\Bounties\BountiedHead.cs" />
     <Compile Include="Items\Body Parts\Head.cs" />
     <Compile Include="Items\Body Parts\LeftArm.cs" />
     <Compile Include="Items\Body Parts\LeftLeg.cs" />
@@ -1468,8 +1469,7 @@
     <Compile Include="Items\Misc\Blood.cs" />
     <Compile Include="Items\Misc\Bola.cs" />
     <Compile Include="Items\Misc\BolaBall.cs" />
-    <Compile Include="Items\Misc\BountyBoard.cs" />
-    <Compile Include="Items\Misc\BountyPackets.cs" />
+    <Compile Include="Engines\Bounties\BountyBoard.cs" />
     <Compile Include="Items\Misc\BulletinBoards.cs" />
     <Compile Include="Items\Misc\ClockworkAssembly.cs" />
     <Compile Include="Items\Misc\CommunicationCrystals.cs" />
@@ -2376,7 +2376,7 @@
     <Compile Include="Misc\AttackMessage.cs" />
     <Compile Include="Misc\AutoRestart.cs" />
     <Compile Include="Misc\AutoSave.cs" />
-    <Compile Include="Misc\BountyInformation.cs" />
+    <Compile Include="Engines\Bounties\BountyInformation.cs" />
     <Compile Include="Misc\Broadcasts.cs" />
     <Compile Include="Misc\BuffIcons.cs" />
     <Compile Include="Misc\CharacterCreation.cs" />
@@ -2544,7 +2544,7 @@
     <Compile Include="Mobiles\Familiars\VampireBat.cs" />
     <Compile Include="Mobiles\Guards\ArcherGuard.cs" />
     <Compile Include="Mobiles\Guards\BaseGuard.cs" />
-    <Compile Include="Mobiles\Guards\BountyGuard.cs" />
+    <Compile Include="Engines\Bounties\BountyGuard.cs" />
     <Compile Include="Mobiles\Guards\WarriorGuard.cs" />
     <Compile Include="Mobiles\Healers\BaseHealer.cs" />
     <Compile Include="Mobiles\Healers\EvilHealer.cs" />

@@ -1,13 +1,11 @@
 ﻿using Server.Mobiles;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Server.Misc;
 
 namespace Server.Items
 {
-    class BountiedHead : Head
+    public class BountiedHead : Head
     {
         public static void Initialize()
         {
@@ -21,7 +19,13 @@ namespace Server.Items
             if (bounty <= 0)
                 return;
 
-                var killer =
+            /* A note about this. This system can not be made drag drop without simply giving the head to the highest player damager.
+               As far as I'm aware, there's no way for me to hook an event into a corpse carve without editing other RunUO files, thus,
+               we use the pre T2A system (and arguably T2A system) of giving the highest damaging player the head. The clilocs are there.
+               Also, note that highest damager does not take pet damage into account. This was pure laziness. 
+
+               The ground work has been done, if you want to convert this to a non-dragdrop system, it's up to you. */
+            var killer =
                 killed.DamageEntries.Where(x => x.Damager is PlayerMobile)
                     .OrderByDescending(x => x.DamageGiven)
                     .Select(x => x.Damager)
@@ -39,12 +43,13 @@ namespace Server.Items
         {
             var killer = me[0] as PlayerMobile;
             var killed = me[1] as PlayerMobile;
-            var bounty = (int)me[2];
+            var bounty = (int) me[2];
             var corpse = killed.Corpse as Corpse;
             var pack = killer.Backpack;
 
             // if the corpse does not exist (events, sacrifice?), is carved, not human, or does not have the itemid of a human corpse, terminate
-            if (pack == null || corpse == null || corpse.Carved || !((Body)corpse.Amount).IsHuman || corpse.ItemID != 0x2006)
+            if (pack == null || corpse == null || corpse.Deleted || corpse.Carved || !((Body) corpse.Amount).IsHuman ||
+                corpse.ItemID != 0x2006)
                 return;
 
             corpse.Carved = true;
@@ -57,7 +62,7 @@ namespace Server.Items
             new LeftArm().MoveToWorld(loc, map);
             new RightLeg().MoveToWorld(loc, map);
             new RightArm().MoveToWorld(loc, map);
-            //new Head(killed.Name).MoveToWorld(loc, map);
+            
             var head = new BountiedHead(killed.Name)
             {
                 Player = killed,

@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace Server.Misc
 {
-    class BountyInformation
+    public class BountyInformation
     {
         public static void Configure()
         {
@@ -186,10 +186,8 @@ namespace Server.Misc
                 var bi = AddBounty(mob, bounty);
                 bi.LastBounty = lastBounty;
             }
-            catch (Exception e)
+            catch
             {
-                Console.WriteLine("Loading of bounty information failed!");
-                Console.WriteLine(e.StackTrace);
                 noFail = false;
             }
         }

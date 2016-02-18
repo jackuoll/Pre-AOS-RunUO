@@ -99,13 +99,16 @@ namespace Server.Mobiles
                     Say("Thou hast wasted thy time for " + total + "gp.");
                     break;
             }
-
+#if ServUO
+            Banker.Deposit(bountyHunter, total);
+#else
             while (total > 0)
             {
                 var amount = total > 60000 ? 60000 : total;
                 bountyHunter.BankBox.DropItem(new Gold(amount));
                 total -= amount;
             }
+#endif
         }
 
         public BountyGuard(Serial serial) : base(serial)

@@ -4,6 +4,7 @@ using Server.Misc;
 using Server.Network;
 using Server.Mobiles;
 using System.Linq;
+using Server.Accounting;
 using Server.Items;
 
 namespace Server.Gumps
@@ -140,10 +141,14 @@ namespace Server.Gumps
 
         private static int GetBountyMax(Mobile from)
         {
+#if ServUO
+            return Banker.GetBalance(from);
+#else
             return from.BankBox.FindItemsByType(typeof (Gold), true).Select(x => x.Amount).Sum();
+#endif
         }
 
-        private static int RemoveGoldFromBank(Mobile from, int total)
+        private static void RemoveGoldFromBank(Mobile from, int total)
         {
             Item[] gold, checks;
             var balance = Banker.GetBalance(from, out gold, out checks);
@@ -151,24 +156,19 @@ namespace Server.Gumps
             if (total > balance)
                 total = balance;
 
-            var totalremoved = 0;
-
             for (var i = 0; total > 0 && i < gold.Length; ++i)
             {
                 if (gold[i].Amount <= total)
                 {
                     total -= gold[i].Amount;
-                    totalremoved += gold[i].Amount;
                     gold[i].Delete();
                 }
                 else
                 {
                     gold[i].Amount -= total;
-                    totalremoved += total;
                     total = 0;
                 }
             }
-            return totalremoved;
         }
 
         private void TryAddKillers(IEnumerable<Mobile> killers)
@@ -221,7 +221,11 @@ namespace Server.Gumps
                                 var bounty = Utility.ToInt32(c.Text);
                                 if (bounty > 0)
                                 {
-                                    bounty = RemoveGoldFromBank(from, bounty);
+#if ServUO
+                                    Banker.Withdraw(from, bounty);
+#else
+                                    RemoveGoldFromBank(from, bounty);
+#endif
                                     BountyInformation.AddBounty(pk, bounty, true);
 
                                     pk.SendMessage("{0} has placed a bounty of {1} {2} on your head!", from.Name,

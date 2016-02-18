@@ -9,9 +9,6 @@ using System.Linq;
 using System.Xml;
 using Server.Items;
 
-// TODO: Object Properties, AOS single click, etc
-// TODO: Bounty boards OnAdded - if not bountymessage delete
-
 namespace Server.Misc
 {
     public class BountyInformation

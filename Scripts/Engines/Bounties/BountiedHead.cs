@@ -1,7 +1,5 @@
 ﻿using Server.Mobiles;
 using System;
-using System.Linq;
-using Server.Misc;
 
 namespace Server.Items
 {

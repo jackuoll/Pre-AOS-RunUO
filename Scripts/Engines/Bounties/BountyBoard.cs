@@ -40,6 +40,12 @@ namespace Server.Items
                 string.Format("a bounty board with {0} posted bount{1}", Items.Count, Items.Count == 1 ? "y" : "ies"));
         }
 
+        public override void GetProperties(ObjectPropertyList list)
+        {
+            list.Add("Bounty Board");
+            list.Add("{0} posted bount{1}", Items.Count, Items.Count == 1 ? "y" : "ies");
+        }
+
         public override void OnDoubleClick(Mobile from)
         {
             if (CheckRange(from))
@@ -60,11 +66,22 @@ namespace Server.Items
             }
         }
 
+        public override void OnItemAdded(Item item)
+        {
+            if (!(item is BountyMessage))
+            {
+                var bm = item as BulletinMessage;
+                if (bm != null && bm.Poster != null)
+                    bm.Poster.SendMessage("This board is for bounty messages only.");
+                item.Delete();
+            }
+        }
+
         public override void Cleanup()
         {
             // Remove any outdated bounties, and remove any posts made by players. Cannot deny player postings without editing BaseBulletinBoard.
             var validBountyPlayers = BountyInformation.GetValidBounties().Select(x=>x.BountyPlayer);
-            Items.Where(x => x is BountyMessage && !validBountyPlayers.Contains(((BountyMessage)x).BountyPlayer) || !(x is BountyMessage))
+            Items.Where(x => !validBountyPlayers.Contains(((BountyMessage)x).BountyPlayer))
                 .ToList()
                 .ForEach( message => message.Delete() );
         }

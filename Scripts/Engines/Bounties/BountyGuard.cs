@@ -32,12 +32,13 @@ namespace Server.Mobiles
                 bh.Created + TimeSpan.FromDays(1.0) > DateTime.UtcNow)
             {
                 SayTo(from, 500670); // Ah, a head!  Let me check to see if there is a bounty on this.
-                Timer.DelayCall(TimeSpan.FromSeconds(5.0), CheckBountyOnHead, bh);
+                Timer.DelayCall(TimeSpan.FromSeconds(5.0), CheckBountyOnHead, new object[] {bh, from});
                 return true;
             }
             else if (dropped is Head)
             {
                 Say(RejectedHeadSayings[Utility.Random(RejectedHeadSayings.Count)]);
+                dropped.Delete();
                 return true;
             }
 
@@ -45,13 +46,16 @@ namespace Server.Mobiles
             return false;
         }
 
-        private void CheckBountyOnHead(BountiedHead head)
+        private void CheckBountyOnHead(object[] states)
         {
+            var head = (BountiedHead) states[0];
+            var bountyHunter = (Mobile) states[1];
             var bi = BountyInformation.GetBountyInformation(head.Player);
 
             if (bi == null)
             {
                 Say("The reward on this scoundrel's head has already been claimed!");
+                head.Delete();
                 return;
             }
 
@@ -62,21 +66,46 @@ namespace Server.Mobiles
             if (difference < 0)
             {
                 Say("The reward on this scoundrel's head has already been claimed!");
+                head.Delete();
                 return;
             }
 
             bi.SubtractBounty(headBounty);
+            AwardBounty(bountyHunter, head.PlayerName, headBounty);
+            head.Delete();
+        }
 
-            if (headBounty >= 15000)
-                Say(string.Format(
-                        "Thou hast brought the infamous {0} to justice!  Thy reward of {1}gp hath been deposited in thy bank account.",
-                        head.Player.Name, headBounty));
-            else if (headBounty > 100)
-                Say(string.Format(
-                        "Tis a minor criminal, thank thee. Thy reward of {0}gp hath been deposited in thy bank account.",
-                        headBounty));
-            else
-                Say(string.Format("Thou hast wasted thy time for {0}gp.", headBounty));
+        private void AwardBounty(Mobile bountyHunter, string killer, int total)
+        {
+            var bountySize = 0;
+
+            if (total > 15000)
+                bountySize = 2;
+            else if (total > 100)
+                bountySize = 1;
+
+            switch (bountySize)
+            {
+                case 2:
+                    bountyHunter.PlaySound(0x2E6);
+                    Say("Thou hast brought the infamous " + killer + " to justice!  Thy reward of " + total + "gp hath been deposited in thy bank account.");
+                    break;
+                case 1:
+                    bountyHunter.PlaySound(0x2E5);
+                    Say("Tis a minor criminal, thank thee. Thy reward of " + total + "gp hath been deposited in thy bank account.");
+                    break;
+                default:
+                    bountyHunter.PlaySound(0x2E4);
+                    Say("Thou hast wasted thy time for " + total + "gp.");
+                    break;
+            }
+
+            while (total > 0)
+            {
+                var amount = total > 60000 ? 60000 : total;
+                bountyHunter.BankBox.DropItem(new Gold(amount));
+                total -= amount;
+            }
         }
 
         public BountyGuard(Serial serial) : base(serial)

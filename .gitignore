@@ -12,3 +12,6 @@
 *.suo
 /Backups
 /Saves
+*.dll
+Scripts/Misc/ServerList.cs
+*.log

@@ -173,9 +173,9 @@ namespace Server.Misc
         private void AddBounty(int bounty, bool updateBoards)
         {
             if (updateBoards)
-                _bounty = bounty;
-            else
                 Bounty += bounty;
+            else
+                _bounty += bounty;
 
             LastBounty = DateTime.UtcNow;
         }
@@ -208,7 +208,7 @@ namespace Server.Misc
                 if (mob == null || bounty == -1 || lastBounty + TimeSpan.FromDays(14.0) < DateTime.UtcNow)
                     return;
 
-                var bi = AddBounty(mob, bounty, true);
+                var bi = AddBounty(mob, bounty, false);
                 bi.LastBounty = lastBounty;
             }
             catch

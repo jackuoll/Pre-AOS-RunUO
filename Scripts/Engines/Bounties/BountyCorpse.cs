@@ -21,7 +21,7 @@ namespace Server.Items
             Mobile.CreateCorpseHandler += Mobile_CreateCorpseHandler;
         }
 
-        public static Container Mobile_CreateCorpseHandler(Mobile owner, HairInfo hair, FacialHairInfo facialhair,
+        public new static Container Mobile_CreateCorpseHandler(Mobile owner, HairInfo hair, FacialHairInfo facialhair,
             List<Item> initialContent, List<Item> equipItems)
         {
             var pm = owner as PlayerMobile;
@@ -92,9 +92,21 @@ namespace Server.Items
             base.Carve(from, item);
 
             var charName = Owner.Name;
+            var itemsInRange = GetItemsInRange(0);
+            Head oldHead = null;
+            foreach (var it in itemsInRange)
+            {
+                var h = it as Head;
+                if (h == null || h is BountiedHead || h.PlayerName != charName)
+                    continue;
+
+                oldHead = h;
+                break;
+            }
+            /* RunUO 2.2 IPooledEnumerable does not support ToList()?
             var oldHead = GetItemsInRange(0)
                 .ToList()
-                .FirstOrDefault(x => x is Head && ((Head) x).PlayerName == charName);
+                .FirstOrDefault(x => x is Head && ((Head) x).PlayerName == charName);*/
             if (oldHead == null)
                 return;
 

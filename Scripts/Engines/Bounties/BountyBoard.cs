@@ -88,6 +88,8 @@ namespace Server.Items
 
         public override void Delete()
         {
+            AllBoards.Remove(this);
+            base.Delete();
         }
 
         public override void Serialize(GenericWriter writer)

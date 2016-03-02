@@ -125,7 +125,7 @@ namespace Server.Gumps
             AddHtml(325, 255, 300, 60,
                 "<BIG>Would you like to report " + _killers[_idx].Name + " as a murderer?</BIG>", false, false);
 
-            var bountymax = GetBountyMax(_victim);
+            var bountymax = Banker.GetBalance(_victim);
 
             if (_killers[_idx].Kills >= 4 && bountymax > 0)
             {
@@ -136,38 +136,6 @@ namespace Server.Gumps
 
             AddButton(385, 395, 0x47B, 0x47D, 1, GumpButtonType.Reply, 0);
             AddButton(465, 395, 0x478, 0x47A, 2, GumpButtonType.Reply, 0);
-        }
-
-        private static int GetBountyMax(Mobile from)
-        {
-#if ServUO
-            return Banker.GetBalance(from);
-#else
-            return from.BankBox.FindItemsByType(typeof (Gold), true).Select(x => x.Amount).Sum();
-#endif
-        }
-
-        private static void RemoveGoldFromBank(Mobile from, int total)
-        {
-            Item[] gold, checks;
-            var balance = Banker.GetBalance(from, out gold, out checks);
-
-            if (total > balance)
-                total = balance;
-
-            for (var i = 0; total > 0 && i < gold.Length; ++i)
-            {
-                if (gold[i].Amount <= total)
-                {
-                    total -= gold[i].Amount;
-                    gold[i].Delete();
-                }
-                else
-                {
-                    gold[i].Amount -= total;
-                    total = 0;
-                }
-            }
         }
 
         private void TryAddKillers(IEnumerable<Mobile> killers)
@@ -217,14 +185,11 @@ namespace Server.Gumps
                             var c = info.GetTextEntry(1);
                             if (c != null)
                             {
-                                var bounty = Utility.ToInt32(c.Text);
+                                var bounty = Math.Min( Utility.ToInt32(c.Text), Banker.GetBalance(from) );
+								
                                 if (bounty > 0)
                                 {
-#if ServUO
                                     Banker.Withdraw(from, bounty);
-#else
-                                    RemoveGoldFromBank(from, bounty);
-#endif
                                     BountyInformation.AddBounty(pk, bounty, true);
 
                                     pk.SendMessage("{0} has placed a bounty of {1} {2} on your head!", from.Name,
